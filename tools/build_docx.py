@@ -264,22 +264,49 @@ def build(src_path, out_path):
             emitted_break = False
             continue
 
-        if stripped.startswith("> "):
+        # Callouts: "> " note (blue), ">> " term box (green), ">! " pitfall (amber)
+        callout = None
+        for mark, fill, border in (
+            (">> ", "EDF6EE", "8FBF98"),
+            (">! ", "FDF3E7", "D9A55F"),
+            ("> ", "EEF4F8", "9FBDCC"),
+        ):
+            if stripped.startswith(mark):
+                callout = (mark, fill, border)
+                break
+        if callout:
+            mark, fill, border = callout
+            bare = mark.strip()
             block = []
-            while i < n and lines[i].strip().startswith("> "):
-                block.append(lines[i].strip()[2:])
+            while i < n and (lines[i].strip().startswith(mark)
+                             or lines[i].strip() == bare):
+                st = lines[i].strip()
+                block.append("" if st == bare else st[len(mark):])
                 i += 1
+            while block and block[-1] == "":
+                block.pop()
             t = doc.add_table(rows=1, cols=1)
             t.alignment = WD_TABLE_ALIGNMENT.CENTER
             c = t.cell(0, 0)
-            shade(c, "EEF4F8")
-            cell_borders(c, "9FBDCC", 6)
+            shade(c, fill)
+            cell_borders(c, border, 6)
             c.text = ""
             for k, bl in enumerate(block):
                 par = c.paragraphs[0] if k == 0 else c.add_paragraph()
                 par.paragraph_format.space_after = Pt(2)
-                add_inline(par, bl, 10)
+                if bl == "":
+                    par.paragraph_format.space_after = Pt(0)
+                    set_run_font(par.add_run(""), BODY_FONT, 4)
+                elif bl.strip().startswith("- "):
+                    par.paragraph_format.left_indent = Cm(0.5)
+                    par.paragraph_format.first_line_indent = Cm(-0.35)
+                    r = par.add_run("• ")
+                    set_run_font(r, BODY_FONT, 10)
+                    add_inline(par, bl.strip()[2:], 10)
+                else:
+                    add_inline(par, bl, 10)
             doc.add_paragraph().paragraph_format.space_after = Pt(2)
+            emitted_break = False
             continue
 
         if stripped.startswith("|"):
