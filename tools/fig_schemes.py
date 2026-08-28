@@ -63,7 +63,7 @@ def s03_tx_chain():
         box(ax, x, y, w, 12, n, s)
     for i in range(len(xs) - 1):
         arrow(ax, xs[i] + ws[i] / 2, y, xs[i + 1] - ws[i + 1] / 2, y)
-    arrow(ax, 98, y, 100, y)
+    arrow(ax, 98, y, 99.5, y)
     ax.text(20, 14, "EVM · I/Q 불균형\nLO 누설", ha="center", va="top", fontsize=6.8, color=INK2)
     ax.text(47, 14, "하모닉 · 스퓨리어스\n대역외 방출", ha="center", va="top", fontsize=6.8, color=INK2)
     ax.text(69, 14, "출력 전력 · P1dB\nACLR · PAE", ha="center", va="top", fontsize=6.8, color=INK2)
@@ -85,7 +85,7 @@ def s04_rx_chain():
         box(ax, x, y, w, 12, n, s)
     for i in range(len(xs) - 1):
         arrow(ax, xs[i] + ws[i] / 2, y, xs[i + 1] - ws[i + 1] / 2, y)
-    arrow(ax, 0, y, 2, y)
+    arrow(ax, 0.5, y, 2, y)
     ax.text(43, 14, "잡음지수(NF)\n감도의 지배 요인", ha="center", va="top", fontsize=6.8, color=INK2)
     ax.text(73, 14, "ACS · 차단\n이미지 억압", ha="center", va="top", fontsize=6.8, color=INK2)
     ax.text(90, 14, "BER / PER\nRSSI 확도", ha="center", va="top", fontsize=6.8, color=INK2)
@@ -97,27 +97,32 @@ def s04_rx_chain():
 
 
 def s05_power_setups():
-    fig, ax = scheme_axes(6.3, 2, 74)
-    for i, (yy, tag, desc) in enumerate([
-            (60, "(a) 직결", "저·중전력. 감쇠기로 센서 정격 이내로 낮춘다"),
-            (34, "(b) 커플러", "고전력. 결합도 C(f) 를 보정한다"),
-            (8, "(c) 분석기", "스펙트럼을 함께 볼 때. 절대값은 (a)와 교차검증")]):
+    # (b) 의 종단 박스와 (c) 의 항목 제목이 겹치지 않도록 세로 간격을 충분히 둔다.
+    fig, ax = scheme_axes(6.3, -2, 92)
+    yA, yB, yC = 78, 44, 8
+    for yy, tag, desc in [
+            (yA, "(a) 직결", "저·중전력. 감쇠기로 센서 정격 이내로 낮춘다"),
+            (yB, "(b) 커플러", "고전력. 결합도 C(f) 를 보정한다"),
+            (yC, "(c) 분석기", "스펙트럼을 함께 볼 때. 절대값은 (a) 와 교차검증")]:
         note(ax, 2, yy + 11, f"{tag} — {desc}", size=7.6, color=INK, weight="bold")
-    y = 60
-    box(ax, 14, y, 16, 10, "DUT", kind="dut"); box(ax, 42, y, 14, 8, "감쇠기")
-    box(ax, 76, y, 24, 10, "전력 센서 + 전력계", kind="inst")
-    arrow(ax, 22, y, 35, y); arrow(ax, 49, y, 64, y)
-    y = 34
-    box(ax, 14, y, 16, 10, "DUT", kind="dut"); box(ax, 42, y, 16, 8, "디렉셔널 커플러")
-    box(ax, 76, y, 24, 10, "전력 센서 + 전력계", kind="inst")
-    box(ax, 42, y - 15, 16, 7, "고전력 종단", kind="ghost")
-    arrow(ax, 22, y, 34, y); arrow(ax, 50, y + 1, 64, y + 1)
-    arrow(ax, 42, y - 4, 42, y - 11.5)
-    y = 8
-    box(ax, 14, y, 16, 10, "DUT", kind="dut"); box(ax, 42, y, 14, 8, "감쇠기")
-    box(ax, 76, y, 24, 10, "스펙트럼 분석기", "Channel Power", kind="inst")
-    arrow(ax, 22, y, 35, y); arrow(ax, 49, y, 64, y)
-    caption_title(ax, "그림 4-3  출력 전력 측정의 세 가지 표준 셋업")
+    box(ax, 14, yA, 16, 10, "DUT", kind="dut")
+    box(ax, 42, yA, 14, 8, "감쇠기")
+    box(ax, 76, yA, 24, 10, "전력 센서 + 전력계", kind="inst")
+    arrow(ax, 22, yA, 35, yA); arrow(ax, 49, yA, 64, yA)
+
+    box(ax, 14, yB, 16, 10, "DUT", kind="dut")
+    box(ax, 42, yB, 18, 8, "디렉셔널 커플러")
+    box(ax, 76, yB, 24, 10, "전력 센서 + 전력계", kind="inst")
+    box(ax, 42, yB - 17, 18, 8, "고전력 종단", kind="ghost")
+    arrow(ax, 22, yB, 33, yB); arrow(ax, 51, yB + 1, 64, yB + 1)
+    arrow(ax, 42, yB - 4, 42, yB - 13)
+    note(ax, 62, yB - 17, "결합 포트로 측정하고 결합도를 보정한다", ha="left", size=6.9)
+
+    box(ax, 14, yC, 16, 10, "DUT", kind="dut")
+    box(ax, 42, yC, 14, 8, "감쇠기")
+    box(ax, 76, yC, 24, 10, "스펙트럼 분석기", "Channel Power", kind="inst")
+    arrow(ax, 22, yC, 35, yC); arrow(ax, 49, yC, 64, yC)
+    caption_title(ax, "")
     return save(fig, "s05_power_setups")
 
 
@@ -126,9 +131,11 @@ def s06_vna_cal():
     note(ax, 2, 42, "(a) 무엇을 걷어내는가 — 측정된 것 = 오차항 ⊗ DUT", size=7.8,
          color=INK, weight="bold")
     box(ax, 13, 30, 18, 10, "VNA 수신기", kind="inst")
-    box(ax, 38, 30, 16, 10, "오차항 A", "방향성·소스정합\n반사·전달 추적", kind="warn")
-    box(ax, 62, 30, 14, 10, "DUT", kind="dut")
-    box(ax, 87, 30, 16, 10, "오차항 B", kind="warn")
+    box(ax, 38, 30, 16, 11, "오차항 A", "12항 오차 모델", kind="warn")
+    box(ax, 62, 30, 14, 11, "DUT", kind="dut")
+    box(ax, 87, 30, 16, 11, "오차항 B", kind="warn")
+    note(ax, 38, 22, "방향성 · 소스정합 · 부하정합\n반사추적 · 전달추적 · 크로스토크",
+         ha="center", size=6.6)
     for a, b in [(22, 30), (46, 55), (69, 79)]:
         arrow(ax, a, 30, b, 30)
     note(ax, 2, 16, "(b) 교정 표준 — 아는 답으로 오차항을 푼다", size=7.8, color=INK, weight="bold")
@@ -250,14 +257,14 @@ def s12_loadpull():
     for a, b in [(15, 19), (35, 39.5), (50.5, 53), (65, 67.5), (78.5, 81)]:
         arrow(ax, a, y, b, y)
     arrow(ax, 97, y, 100, y)
-    box(ax, 45, 9, 13, 9, "VNA 수신기", kind="inst")
-    box(ax, 73, 9, 13, 9, "VNA 수신기", kind="inst")
-    arrow(ax, 45, 27.5, 45, 13.5, style="-|>", dashed=True)
-    arrow(ax, 73, 27.5, 73, 13.5, style="-|>", dashed=True)
-    note(ax, 59, 9, "a·b 파를 DUT 기준면에서 벡터 측정", ha="center", size=6.8)
-    box(ax, 10, 9, 18, 9, "DC 전원 (V, I)", kind="inst")
-    arrow(ax, 19, 13.5, 55, 26, style="-|>", dashed=True)
-    note(ax, 10, 1, "P_DC → PAE", ha="center", size=6.9, color=INK2)
+    box(ax, 46, 11, 14, 9, "VNA 수신기", kind="inst")
+    box(ax, 74, 11, 14, 9, "VNA 수신기", kind="inst")
+    arrow(ax, 45, 27.5, 45.5, 15.5, style="-|>", dashed=True)
+    arrow(ax, 73, 27.5, 73.5, 15.5, style="-|>", dashed=True)
+    note(ax, 60, 2.5, "입사파 a · 반사파 b 를 DUT 기준면에서 벡터 측정", ha="center", size=6.9)
+    box(ax, 13, 11, 20, 9, "DC 전원 (V, I)", kind="inst")
+    arrow(ax, 23, 15.5, 54, 26.5, style="-|>", dashed=True)
+    note(ax, 13, 3.5, "P_DC → PAE 산출", ha="center", size=6.9, color=INK2)
     caption_title(ax, "그림 4-8  Load Pull 측정 시스템 구성")
     return save(fig, "s12_loadpull_setup")
 
