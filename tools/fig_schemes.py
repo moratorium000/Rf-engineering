@@ -52,47 +52,71 @@ def s02_pathloss():
     return save(fig, "s02_path_loss_cal")
 
 
+def _chain(ax, items, y=30, h=12):
+    """블록 체인을 그리고 각 블록의 중심 x 를 돌려준다."""
+    for (x, w, n, sub, kind) in items:
+        box(ax, x, y, w, h, n, sub, kind=kind)
+    for i in range(len(items) - 1):
+        x1 = items[i][0] + items[i][1] / 2
+        x2 = items[i + 1][0] - items[i + 1][1] / 2
+        arrow(ax, x1, y, x2, y)
+    return {it[2]: it[0] for it in items}
+
+
+def _callouts(ax, cx, notes, ybox=24):
+    """블록 아래에 지시선과 함께 주석을 단다. 좌우 겹침을 피해 두 단으로 엇갈리게 배치."""
+    for k, (name, text, row) in enumerate(notes):
+        x = cx[name]
+        yt = 15.0 if row == 0 else 6.0
+        ax.plot([x, x], [ybox - 1.0, yt + 1.2], color=AXIS, lw=0.7, zorder=1)
+        ax.text(x, yt, text, ha="center", va="top", fontsize=6.8, color=INK2, zorder=3)
+
+
 def s03_tx_chain():
-    fig, ax = scheme_axes(6.3, 2, 40)
-    y = 30
-    names = [("BB / DAC", "I·Q 생성"), ("믹서", "상향 변환"), ("BPF", "대역 제한"),
-             ("드라이버", "전단 이득"), ("PA", "전력 증폭"), ("스위치·듀플렉서", "경로 선택")]
-    xs = [10, 26, 40, 54, 69, 88]
-    ws = [15, 12, 11, 12, 12, 20]
-    for x, w, (n, s) in zip(xs, ws, names):
-        box(ax, x, y, w, 12, n, s)
-    for i in range(len(xs) - 1):
-        arrow(ax, xs[i] + ws[i] / 2, y, xs[i + 1] - ws[i + 1] / 2, y)
-    arrow(ax, 98, y, 99.5, y)
-    ax.text(20, 14, "EVM · I/Q 불균형\nLO 누설", ha="center", va="top", fontsize=6.8, color=INK2)
-    ax.text(47, 14, "하모닉 · 스퓨리어스\n대역외 방출", ha="center", va="top", fontsize=6.8, color=INK2)
-    ax.text(69, 14, "출력 전력 · P1dB\nACLR · PAE", ha="center", va="top", fontsize=6.8, color=INK2)
-    ax.text(90, 14, "삽입손실 · 격리도\n스위칭 시간", ha="center", va="top", fontsize=6.8, color=INK2)
-    for x in (20, 47, 69, 90):
-        ax.plot([x, x], [22.5, 17.5], color=AXIS, lw=0.7, zorder=1)
-    caption_title(ax, "그림 4-1  송신 체인과 각 구간에서 지배적인 측정 항목")
+    fig, ax = scheme_axes(6.3, -2, 42)
+    items = [
+        (9,  14, "BB / DAC",       "I·Q 생성",  "normal"),
+        (23, 11, "믹서",           "상향 변환", "normal"),
+        (35, 10, "BPF",            "대역 제한", "normal"),
+        (47, 11, "드라이버",       "전단 이득", "normal"),
+        (60, 11, "PA",             "전력 증폭", "normal"),
+        (78, 18, "스위치·듀플렉서", "경로 선택", "normal"),
+        (94, 10, "안테나",         "방사",      "ghost"),
+    ]
+    cx = _chain(ax, items)
+    _callouts(ax, cx, [
+        ("믹서",            "EVM · I/Q 불균형\nLO 누설 · 이미지", 0),
+        ("BPF",             "대역외 억압\n스퓨리어스",           1),
+        ("PA",              "출력 전력 · P1dB\nACLR · 하모닉 · PAE", 0),
+        ("스위치·듀플렉서", "삽입손실 · 격리도\n스위칭 시간",     1),
+        ("안테나",          "S11 / VSWR\nTRP · 효율",            0),
+    ])
+    caption_title(ax, "")
     return save(fig, "s03_tx_chain")
 
 
 def s04_rx_chain():
-    fig, ax = scheme_axes(6.3, 2, 50)
-    y = 30
-    names = [("스위치·듀플렉서", "경로 선택"), ("BPF", "대역 선택"), ("LNA", "저잡음 증폭"),
-             ("믹서", "하향 변환"), ("채널 필터", "선택도"), ("ADC / 복조", "데이터 복원")]
-    xs = [12, 29, 43, 57, 73, 90]
-    ws = [20, 11, 11, 11, 15, 15]
-    for x, w, (n, s) in zip(xs, ws, names):
-        box(ax, x, y, w, 12, n, s)
-    for i in range(len(xs) - 1):
-        arrow(ax, xs[i] + ws[i] / 2, y, xs[i + 1] - ws[i + 1] / 2, y)
-    arrow(ax, 0.5, y, 2, y)
-    ax.text(43, 14, "잡음지수(NF)\n감도의 지배 요인", ha="center", va="top", fontsize=6.8, color=INK2)
-    ax.text(73, 14, "ACS · 차단\n이미지 억압", ha="center", va="top", fontsize=6.8, color=INK2)
-    ax.text(90, 14, "BER / PER\nRSSI 확도", ha="center", va="top", fontsize=6.8, color=INK2)
-    for x in (43, 73, 90):
-        ax.plot([x, x], [22.5, 17.5], color=AXIS, lw=0.7, zorder=1)
-    note(ax, 43, 45, "이 지점 이후의 잡음은 되돌릴 수 없다", ha="center", size=7.0, color=CRIT)
-    caption_title(ax, "그림 4-2  수신 체인과 각 구간에서 지배적인 측정 항목")
+    fig, ax = scheme_axes(6.3, -2, 46)
+    items = [
+        (7,  10, "안테나",         "수신",      "ghost"),
+        (24, 18, "스위치·듀플렉서", "경로 선택", "normal"),
+        (41, 11, "BPF",            "대역 선택", "normal"),
+        (54, 11, "LNA",            "저잡음 증폭", "normal"),
+        (66, 10, "믹서",           "하향 변환", "normal"),
+        (80, 13, "채널 필터",      "선택도",    "normal"),
+        (95,  9, "ADC",            "복조",      "normal"),
+    ]
+    cx = _chain(ax, items)
+    _callouts(ax, cx, [
+        ("LNA",       "잡음지수(NF)\n감도의 지배 요인", 0),
+        ("믹서",      "이미지 억압\nIMD · LO 누설",     1),
+        ("채널 필터", "ACS · 차단",                      0),
+        ("ADC",       "BER / PER\n최대 입력",           1),
+    ])
+    note(ax, 54, 43, "이 지점 이후에 더해진 잡음은 되돌릴 수 없다", ha="center",
+         size=7.0, color=CRIT)
+    ax.plot([54, 54], [42, 36.5], color=CRIT, lw=0.8, zorder=1)
+    caption_title(ax, "")
     return save(fig, "s04_rx_chain")
 
 
