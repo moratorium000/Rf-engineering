@@ -4,21 +4,29 @@ RF 벤치 테스트 관련 기술 문서 저장소.
 
 ## 문서
 
-두 문서는 짝을 이룬다. 같은 내용을 다른 깊이로 다루며, 입문서 부록 D에 절 단위 대응표가 있다.
+세 문서는 같은 주제를 다른 깊이로 다룬다. 입문서 부록 D에 입문서 ↔ 상세판 절 단위 대응표가 있다.
 
 | 문서 | 대상 | 설명 | 형식 |
 |---|---|---|---|
+| `docs/RF_벤치_테스트_상세가이드_도해판` | 실무자 | **상세판 v2.0.** 도해 14점 + 계산 그래프 20점 수록. 캐스케이드(이득·NF·IP3)와 링크 버짓을 독립 장으로 분리하고, 항목마다 계산 예제·불확도 지배 요인·자동화 골격을 추가 | `.md` / `.docx` / `.pdf` |
 | `docs/RF_벤치_테스트_입문서` | 비전공자 · 입문자 | 용어부터 설명하는 안내서. dB·임피던스·잡음 같은 기초부터 시작해, 측정 항목을 비유와 이야기로 설명한다. 용어 상자 58개, 함정 상자 68개, 계산 예제, 첫 달 학습 경로, 현장 용어 번역기, 인쇄용 한 장 요약 포함 | `.md` / `.docx` / `.pdf` |
-| `docs/RF_벤치_테스트_엔지니어_가이드` | 실무자 | 상세판. 보드/모듈/시스템 레벨 RF 측정 항목 총람 (IC 설계단 제외). Trim, Rx, Harmonics, Power Meter, VNA, Load Pull 등 24개 시험 항목을 목적·셋업·절차·판정·디버깅·함정 골격으로 기술 | `.md` / `.docx` / `.pdf` |
+| `docs/RF_벤치_테스트_엔지니어_가이드` | 실무자 | 상세판 v1.0 (그림 없음). 보드/모듈/시스템 레벨 RF 측정 항목 총람 (IC 설계단 제외). Trim, Rx, Harmonics, Power Meter, VNA, Load Pull 등 24개 시험 항목을 목적·셋업·절차·판정·디버깅·함정 골격으로 기술 | `.md` / `.docx` / `.pdf` |
 
 ## 빌드
 
-Markdown 원본(`docs/*.md`)에서 DOCX를 생성한다.
+그림을 먼저 생성한 뒤 Markdown 원본(`docs/*.md`)에서 DOCX를 만든다.
 
 ```bash
-pip install python-docx
+pip install python-docx matplotlib numpy scipy
+python3 tools/fig_schemes.py     # 블록도 14점 -> figures/s*.png
+python3 tools/fig_plots.py       # 계산 그래프 -> figures/p01..p09
+python3 tools/fig_plots2.py      # 계산 그래프 -> figures/p10..p21
 python3 tools/build_docx.py docs/<문서>.md docs/<문서>.docx
 ```
+
+`tools/figstyle.py` 는 공통 그림 스타일과 블록도 작도 헬퍼다. 색은 고정 순서의
+검증된 팔레트를 쓰며 백색 인쇄면 기준으로 색각 이상 분리도와 대비를 확인했다.
+모든 그래프는 물리 모델에서 계산한 것이며 실측 데이터가 아니다.
 
 PDF는 LibreOffice Writer로 변환하며, 목차 필드의 페이지 번호를 채우기 위해
 UNO 브리지로 인덱스를 갱신한 뒤 내보낸다(`libreoffice-writer`, `python3-uno` 필요).

@@ -13,6 +13,7 @@
   [[TITLE]] ... 블록       : 표지
   **bold** , `code`        : 인라인 서식
 """
+import os
 import re
 import sys
 
@@ -22,11 +23,12 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt, RGBColor
+from docx.shared import Cm, Emu, Pt, RGBColor
 
 BODY_FONT = "Noto Sans CJK KR"
 MONO_FONT = "NanumGothicCoding"
 ACCENT = RGBColor(0x0B, 0x4F, 0x6C)
+TEXT_WIDTH = Cm(16.4)   # A4 210mm - 좌우 여백 22mm
 MUTED = RGBColor(0x55, 0x5D, 0x66)
 
 
@@ -237,6 +239,31 @@ def build(src_path, out_path):
             h = doc.add_heading(level=level)
             add_inline(h, m.group(2), {1: 17, 2: 13.5, 3: 11.5, 4: 10.5}[level], True,
                        ACCENT if level <= 2 else RGBColor(0x1F, 0x2A, 0x33))
+            emitted_break = False
+            i += 1
+            continue
+
+        m = re.match(r"^!\[(.*)\]\((.+?)\)$", stripped)
+        if m:
+            cap, path = m.group(1), m.group(2)
+            if not os.path.exists(path):
+                raise SystemExit(f"figure not found: {path}")
+            par = doc.add_paragraph()
+            par.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            par.paragraph_format.space_before = Pt(8)
+            par.paragraph_format.space_after = Pt(2)
+            par.paragraph_format.keep_with_next = True
+            run = par.add_run()
+            run.add_picture(path, width=TEXT_WIDTH)
+            if cap:
+                cp = doc.add_paragraph()
+                cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                cp.paragraph_format.space_after = Pt(11)
+                num, _, rest = cap.partition("  ")
+                r1 = cp.add_run(num + "  ")
+                set_run_font(r1, BODY_FONT, 8.6, True, ACCENT)
+                r2 = cp.add_run(rest if rest else "")
+                set_run_font(r2, BODY_FONT, 8.6, False, MUTED)
             emitted_break = False
             i += 1
             continue
